@@ -12,7 +12,7 @@ const io = socketIO(server);
 
 const connectedSockets = {};
 
-const searchLobby = {};
+const searchingForLobby = [];
 
 const lobbyID = {};
 
@@ -30,13 +30,13 @@ io.on('connection', (socket) => {
   // Warten auf 2 Connects, wie wird es abgefangen? Wenn zwei Spieler connected sind, wir die Info weitergegeben, dass das Spiel starten kann.
   console.log('Client connected');
 
-  connectedSockets[socket.id] = {"name" : false, "lobby": false};
+  connectedSockets[socket.id] = {"username" : null, "loggedIn": false};
   socket.emit("message", "Verbindung aufgebaut");
   console.log(socket.id);
 
   
 
-  
+
   // Event für disconnect
   socket.on('disconnect', () => {
     // TODO: Bei einem disconnect, soll auch ein Logout durchgeführt werden
@@ -62,7 +62,17 @@ io.on('connection', (socket) => {
     // Wenn keine lobby gefunden werden kann (keine da oder alle voll) -> neue erstellen und warten bis voll
 
     // ...
-
+    if(/*connectedSockets[socket.id].loggedIn == true*/true) {
+      console.log("Eingeloggt.")
+      if(searchingForLobby.length == 0) {
+        searchingForLobby.push(connectedSockets[socket.id]);
+        console.log("Auf Gegner warten...");
+      } else {
+        console.log("Gegner gefunden: ", searchingForLobby[0].username, " vs ", connectedSockets[socket.id].username);
+      }
+    } else {
+      console.log("Nicht eingeloggt.")
+    }
     
 
   });
@@ -75,11 +85,12 @@ io.on('connection', (socket) => {
       const users = read_users();
       correct_login_data = users.some(user => user.username === account_data.username && user.passwort === account_data.passwort);
 
-      if(correct_login_data){
+      if(correct_login_data) {
+        connectedSockets[socket.id].loggedIn = true;
         // TODO: Hier Nachricht an den User, sockit emit...
         // zB. "Erfolgreich eingeloggt"
         // Was passiert wenn sich eingeloggt wurde? 
-      }else{
+      } else {
         // TODO: Diese Nachricht muss zurück an den Client
         // Was passiert wenn der Client die Daten falsch eingegeben hat
         console.log("does not work");
@@ -102,17 +113,16 @@ io.on('connection', (socket) => {
       const users = read_users();
       let index = 0;
 
-      
       // Checkt ob der User in der JSON enthalten ist
       user_exist = users.some(user => user.username === account_data.username);
    
       console.log(user_exist);
 
-      if(user_exist){
+      if(user_exist) {
         // TODO: Diese Nachricht muss zurück an den Client
         // Was passiert wenn der Name schon vergeben ist?
         console.log("does not work");
-      }else{
+      } else {
         register_users(users, account_data);
         
         // TODO: Hier Nachricht an den User, sockit emit...

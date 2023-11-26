@@ -3,7 +3,7 @@ import socketio
 
 sio = socketio.Client()
 
-def register ():
+def register():
     data = {
         'username': 'lewin',
         'passwort': '321'
@@ -13,6 +13,7 @@ def register ():
 @sio.event
 def connect():
     register()
+    sio.emit('findLobby')
     print('Connected to server')
 
 @sio.event
