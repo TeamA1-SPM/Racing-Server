@@ -25,7 +25,7 @@ public class JavaClient {
             }).on("message", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
-                    System.out.println("Message from server: " + args[0]);
+                    System.out.println("Message received: " + args[0]);
                 }
             });
 
@@ -33,7 +33,7 @@ public class JavaClient {
 
             Scanner scanner = new Scanner(System.in);
             while (true) {
-                System.out.print("Enter a message: ");
+                //System.out.print("Enter a message: ");
                 String message = scanner.nextLine();
                 socket.emit("message", message);
             }
