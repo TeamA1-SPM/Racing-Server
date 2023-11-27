@@ -12,6 +12,7 @@ public class JavaClient {
     public static void main(String[] args) {
         try {
             Socket socket = IO.socket("http://localhost:3000");
+            
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {

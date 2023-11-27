@@ -1,0 +1,30 @@
+{
+  "lobbys": [
+    {
+      "lobbyId": 1,
+      "player1": {
+        "username": "tobi",
+        "fastestLap": null,
+        "won": false
+      },
+      "player2": {
+        "username": "tobi",
+        "fastestLap": null,
+        "won": true
+      }
+    },
+    {
+      "lobbyId": 2,
+      "player1": {
+        "username": "lewin",
+        "fastestLap": 100,
+        "won": false
+      },
+      "player2": {
+        "username": "tobi",
+        "fastestLap": null,
+        "won": true
+      }
+    }
+  ]
+}
