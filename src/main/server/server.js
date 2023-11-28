@@ -66,8 +66,8 @@ io.on('connection', (socket) => {
           io.to(players.player2.socketID).emit('start_game', connected_sockets[players.player1.socketID].username);
 
           found_lobby = true;
-        };
-      };
+        }
+      }
 
       // Prüfen, ob keine Lobby gefunden wurde
       if (!found_lobby) {
@@ -145,7 +145,7 @@ io.on('connection', (socket) => {
     for (const [lobbyID, players] of active_lobbys) {
       if ((socket.id == players.player1.socketID && players.player1.fastestLap > time) || (players.player1.fastestLap == null)) {
         players.player1.fastestLap = time;
-      };
+      }
 
       // TODO: Nur für Test-Zwecke
       if (players.player2 != null) {
@@ -239,7 +239,7 @@ function write_lobby(lobby_data) {
     lobbys.push(lobby_data);
     // Erweitertes Array wird in JSON-Format in die Datei geschrieben
     fs.writeFileSync('./lobbys.json', JSON.stringify({ lobbys }, null, 2), 'utf-8');
-    } catch (error) {
+  } catch (error) {
     console.log(error);
     return false;
   }
@@ -249,10 +249,8 @@ function write_lobby(lobby_data) {
 /* Funktion beendet das Spiel einer Lobby */
 function game_ends(player1_won, players, lobbyID) {
   // Prüfen, ob Spieler1 gewonnen hat
-  if (player1_won) {
-    /* 
-    @Param Event_Name, Enemy Player Name, Fastest Lap, Enemy Fastest Lap, Won?
-    */
+  if(player1_won) {
+    // @Param Event_Name, Enemy Player Name, Fastest Lap, Enemy Fastest Lap, Won?
     io.to(players.player1.socketID).emit('end_game', connected_sockets[players.player2.socketID].username, players.player1.fastestLap, players.player2.fastestLap, true);
     io.to(players.player2.socketID).emit('end_game', connected_sockets[players.player1.socketID].username, players.player2.fastestLap, players.player2.fastestLap, false);
   } else {
@@ -278,7 +276,6 @@ function game_ends(player1_won, players, lobbyID) {
 
   // Lobby in lobbys.json sichern
   write_lobby(lobby_data);
-
   // Lobby wird gelöscht
   active_lobbys.delete(lobbyID);
 
