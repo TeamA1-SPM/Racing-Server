@@ -150,7 +150,7 @@ io.on('connection', (socket) => {
       }
 
 
-      if ((socket.id == players.player2.socketID && players.player2.fastestLap > time) || (players.player1.fastestLap == null)) {
+      if ((socket.id == players.player2.socketID && players.player2.fastestLap > time) || (players.player2.fastestLap == null)) {
         players.player2.fastestLap = time;
         io.to(players.player1.socketID).emit('best_lap_times', players.player1.fastestLap, players.player2.fastestLap);
         io.to(players.player2.socketID).emit('best_lap_times', players.player2.fastestLap, players.player1.fastestLap);

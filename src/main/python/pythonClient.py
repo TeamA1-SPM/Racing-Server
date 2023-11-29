@@ -14,9 +14,9 @@ def register():
 def connect():
     #register()
     sio.emit('login', ("timo", "123456") )
-    sio.emit('find_lobby')
-    sio.emit('lap_time', 100)
-    sio.emit('finished_race')
+    #sio.emit('find_lobby')
+    #sio.emit('lap_time', 100)
+    #sio.emit('finished_race')
     print('Connected to server')
 
 @sio.event
