@@ -30,7 +30,7 @@ io.on('connection', (socket) => {
   console.log('Client', socket.id, 'connected!');
 
   // Neuen Client speichern
-  connected_sockets[socket.id] = {"username": null, "loggedIn": false};
+  connected_sockets[socket.id] = { "username": null, "loggedIn": false };
 
   // Client über erfolgreiche Verbindung informieren
   socket.emit("message", "Connected to Sever!");
@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
   /* Wird aufgerufen, wenn Client Verbindung zum Server trennt */
   socket.on('disconnect', () => {
     // TODO: Bei einem disconnect, soll auch ein Logout durchgeführt werden
-    console.log('Client ', socket.id ,' disconnected!');
+    console.log('Client ', socket.id, ' disconnected!');
   });
 
 
@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
       for (const [lobbyID, players] of active_lobbys) {
         // Wenn freie Lobby gefunden, Client als Gegner eintragen
         if (players.player1 != null && players.player2 == null) {
-          players.player2 = 
+          players.player2 =
           {
             "socketID": socket.id,
             "fastestLap": null,
@@ -73,15 +73,15 @@ io.on('connection', (socket) => {
       if (!found_lobby) {
         // Neue Lobby erstellen
         active_lobbys.set(
-          get_last_lobby_id() + 1, 
+          get_last_lobby_id() + 1,
           {
-          player1: {
-            "socketID": socket.id,
-            "fastestLap": null,
-            "finished": false
-          },
-          player2: null
-        })
+            player1: {
+              "socketID": socket.id,
+              "fastestLap": null,
+              "finished": false
+            },
+            player2: null
+          })
       }
 
     }
@@ -110,7 +110,7 @@ io.on('connection', (socket) => {
 
   /* Wird aufgerufen, wenn Client sich ausloggt */
   socket.on('logout', () => {
-    connected_sockets[socket.id] = {"username": null, "loggedIn": false};
+    connected_sockets[socket.id] = { "username": null, "loggedIn": false };
   });
 
 
@@ -139,18 +139,22 @@ io.on('connection', (socket) => {
   socket.on('lap_time', (time) => {
     // TODO: Fehlerbehandlung: Was passiert wenn ein Spieler mitten im Spiel die Verbindung unterbricht?
     // TODO: Was ist wenn beide Bestzeiten gleich sind?
-    console.log(connected_sockets[socket.id].username, "has driven a lap time of", time , "!");
+    console.log(connected_sockets[socket.id].username, "has driven a lap time of", time, "!");
 
     // In der Lobby in der der Socket ist die Bestzeit setzen
     for (const [lobbyID, players] of active_lobbys) {
       if ((socket.id == players.player1.socketID && players.player1.fastestLap > time) || (players.player1.fastestLap == null)) {
         players.player1.fastestLap = time;
+        io.to(players.player1.socketID).emit('best_lap_times', players.player1.fastestLap, players.player2.fastestLap);
+        io.to(players.player2.socketID).emit('best_lap_times', players.player2.fastestLap, players.player1.fastestLap);
       }
 
       // TODO: Nur für Test-Zwecke
       if (players.player2 != null) {
         if ((socket.id == players.player2.socketID && players.player2.fastestLap > time) || (players.player1.fastestLap == null)) {
           players.player2.fastestLap = time;
+          io.to(players.player1.socketID).emit('best_lap_times', players.player1.fastestLap, players.player2.fastestLap);
+          io.to(players.player2.socketID).emit('best_lap_times', players.player2.fastestLap, players.player1.fastestLap);
         }
       }
 
@@ -194,7 +198,7 @@ io.on('connection', (socket) => {
 /* Funktion ließt alle historischen lobbys aus lobbys.json */
 function read_lobbys() {
   try {
-    const data = fs.readFileSync('./lobbys.json', 'utf-8');
+    const data = fs.readFileSync('src/main/server/lobbys.json', 'utf-8');
     const lobbys = JSON.parse(data).lobbys;
     return lobbys;
   } catch (error) {
@@ -207,7 +211,7 @@ function read_lobbys() {
 /* Funktion ließt alle registrierten user aus users.json */
 function read_users() {
   try {
-    const data = fs.readFileSync('./users.json', 'utf-8');
+    const data = fs.readFileSync('src/main/server/users.json', 'utf-8');
     const users = JSON.parse(data).users;
     return users;
   } catch (error) {
@@ -249,7 +253,7 @@ function write_lobby(lobby_data) {
 /* Funktion beendet das Spiel einer Lobby */
 function game_ends(player1_won, players, lobbyID) {
   // Prüfen, ob Spieler1 gewonnen hat
-  if(player1_won) {
+  if (player1_won) {
     // @Param Event_Name, Enemy Player Name, Fastest Lap, Enemy Fastest Lap, Won?
     io.to(players.player1.socketID).emit('end_game', connected_sockets[players.player2.socketID].username, players.player1.fastestLap, players.player2.fastestLap, true);
     io.to(players.player2.socketID).emit('end_game', connected_sockets[players.player1.socketID].username, players.player2.fastestLap, players.player2.fastestLap, false);

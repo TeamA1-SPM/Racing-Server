@@ -28,6 +28,11 @@ def disconnect():
 def start_game(enemy_player):
     print("You play against: ", enemy_player)
 
+@sio.event
+def best_lap_times(me, you):
+    print("Your lap: ", me)
+    print("Enemy play: ", you)
+
 sio.connect('http://localhost:3000')
 
 

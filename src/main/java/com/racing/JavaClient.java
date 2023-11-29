@@ -12,7 +12,7 @@ public class JavaClient {
     public static void main(String[] args) {
         try {
             Socket socket = IO.socket("http://localhost:3000");
-            
+
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
@@ -28,16 +28,24 @@ public class JavaClient {
                 public void call(Object... args) {
                     System.out.println("Message received: " + args[0]);
                 }
+            }).on("best_lap_times", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    System.out.println("Message received: " + args[0]);
+                    System.out.println("Message received: " + args[1]);
+                }
+
             });
 
             socket.connect();
 
             Scanner scanner = new Scanner(System.in);
             while (true) {
-                //System.out.print("Enter a message: ");
+                // System.out.print("Enter a message: ");
                 String message = scanner.nextLine();
                 socket.emit("message", message);
             }
+
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
