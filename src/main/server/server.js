@@ -149,14 +149,13 @@ io.on('connection', (socket) => {
         io.to(players.player2.socketID).emit('best_lap_times', players.player2.fastestLap, players.player1.fastestLap);
       }
 
-      // TODO: Nur für Test-Zwecke
-      if (players.player2 != null) {
-        if ((socket.id == players.player2.socketID && players.player2.fastestLap > time) || (players.player1.fastestLap == null)) {
-          players.player2.fastestLap = time;
-          io.to(players.player1.socketID).emit('best_lap_times', players.player1.fastestLap, players.player2.fastestLap);
-          io.to(players.player2.socketID).emit('best_lap_times', players.player2.fastestLap, players.player1.fastestLap);
-        }
+
+      if ((socket.id == players.player2.socketID && players.player2.fastestLap > time) || (players.player1.fastestLap == null)) {
+        players.player2.fastestLap = time;
+        io.to(players.player1.socketID).emit('best_lap_times', players.player1.fastestLap, players.player2.fastestLap);
+        io.to(players.player2.socketID).emit('best_lap_times', players.player2.fastestLap, players.player1.fastestLap);
       }
+
 
     }
 
@@ -170,24 +169,20 @@ io.on('connection', (socket) => {
       // Prüfen, ob Gegner auch fertig
       if (socket.id == players.player1.socketID) {
         players.player1.finished = true;
-        // TODO: Test
-        if (players.player2 != null) {
-          if (players.player2.finished == true) {
-            game_ends(players.player1.fastestLap < players.player2.fastestLap, players, lobbyID);
-          }
+        if (players.player2.finished == true) {
+          game_ends(players.player1.fastestLap < players.player2.fastestLap, players, lobbyID);
+        }
+
+      }
+
+      // Prüfen, ob Gegner auch fertig
+      if (socket.id == players.player2.socketID) {
+        players.player2.finished = true;
+        if (players.player1.finished == true) {
+          game_ends(players.player1.fastestLap < players.player2.fastestLap, players, lobbyID);
         }
       }
 
-      // TODO: Nur für Test-Zwecke 
-      // Prüfen, ob Gegner auch fertig
-      if (players.player2 != null) {
-        if (socket.id == players.player2.socketID) {
-          players.player2.finished = true;
-          if (players.player1.finished == true) {
-            game_ends(players.player1.fastestLap < players.player2.fastestLap, players, lobbyID);
-          }
-        }
-      }
 
     }
   });
