@@ -155,16 +155,17 @@ io.on('connection', (socket) => {
 
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
+    console.log(active_lobbys.get(current_lobby_ID));
 
     // In der Lobby in der der Socket ist die Bestzeit setzen
-    if ((socket.id == current_lobby.player1.socketID && current_lobby.player1.fastestLap > time) || (current_lobby.player1.fastestLap == null)) {
+    if (socket.id == current_lobby.player1.socketID && ((current_lobby.player1.fastestLap > time) || (current_lobby.player1.fastestLap == null))) {
       current_lobby.player1.fastestLap = time;
       io.to(current_lobby.player1.socketID).emit('best_lap_times', current_lobby.player1.fastestLap, current_lobby.player2.fastestLap);
       io.to(current_lobby.player2.socketID).emit('best_lap_times', current_lobby.player2.fastestLap, current_lobby.player1.fastestLap);
     }
 
-    if ((socket.id == current_lobby.player2.socketID && current_lobby.player2.fastestLap > time) || (current_lobby.player1.fastestLap == null)) {
-      players.player2.fastestLap = time;
+    if (socket.id == current_lobby.player2.socketID && ((current_lobby.player2.fastestLap > time) || (current_lobby.player2.fastestLap == null))) {
+      current_lobby.player2.fastestLap = time;
       io.to(current_lobby.player1.socketID).emit('best_lap_times', current_lobby.player1.fastestLap, current_lobby.player2.fastestLap);
       io.to(current_lobby.player2.socketID).emit('best_lap_times', current_lobby.player2.fastestLap, current_lobby.player1.fastestLap);
     }
