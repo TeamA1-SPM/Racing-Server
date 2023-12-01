@@ -158,21 +158,14 @@ io.on('connection', (socket) => {
       io.to(current_lobby.player1.socketID).emit('best_lap_times', current_lobby.player1.fastestLap, current_lobby.player2.fastestLap);
       io.to(current_lobby.player2.socketID).emit('best_lap_times', current_lobby.player2.fastestLap, current_lobby.player1.fastestLap);
     }
-    for (const [lobbyID, players] of active_lobbys) {
-      if ((socket.id == players.player1.socketID && players.player1.fastestLap > time) || (players.player1.fastestLap == null)) {
-        players.player1.fastestLap = time;
-        io.to(players.player1.socketID).emit('best_lap_times', players.player1.fastestLap, players.player2.fastestLap);
-        io.to(players.player2.socketID).emit('best_lap_times', players.player2.fastestLap, players.player1.fastestLap);
-        break;
-      }
 
-      if (socket.id == current_lobby.player2.socketID && ((current_lobby.player2.fastestLap > time) || (current_lobby.player2.fastestLap == null))) {
-        current_lobby.player2.fastestLap = time;
-        io.to(current_lobby.player1.socketID).emit('best_lap_times', current_lobby.player1.fastestLap, current_lobby.player2.fastestLap);
-        io.to(current_lobby.player2.socketID).emit('best_lap_times', current_lobby.player2.fastestLap, current_lobby.player1.fastestLap);
-      }
+    if (socket.id == current_lobby.player2.socketID && ((current_lobby.player2.fastestLap > time) || (current_lobby.player2.fastestLap == null))) {
+      current_lobby.player2.fastestLap = time;
+      io.to(current_lobby.player1.socketID).emit('best_lap_times', current_lobby.player1.fastestLap, current_lobby.player2.fastestLap);
+      io.to(current_lobby.player2.socketID).emit('best_lap_times', current_lobby.player2.fastestLap, current_lobby.player1.fastestLap);
+    }
 
-    });
+  });
 
 
   /* Wird aufgerufen, wenn Client sein race abgeschlossen hat */
