@@ -104,19 +104,22 @@ io.on('connection', (socket) => {
   socket.on('login', (username, passwort) => {
     const users = read_users();
     let correct_login_data = users.some(user => user.username === username && user.passwort === passwort);
+    let login_bool = false;
 
     if (correct_login_data) {
       connected_sockets[socket.id].username = username;
       connected_sockets[socket.id].loggedIn = true;
       console.log(username, "logged in!")
-      // TODO: Hier Nachricht an den User, sockit emit...
-      // zB. "Erfolgreich eingeloggt"
-      // Was passiert wenn sich eingeloggt wurde? 
+      login_bool = true;
+
+      /* TODO: Die users.json um ("loggedIn": false) erweitern und nach erfolgreichem einloggen auf true setzen. 
+      Diese Bedinung dass loggedIn = false ist muss mit in die Einlogg-Bedingung aufgenommen werden, um zu verhindern,
+      dass sich der gleiche Account öfters einloggen kann */
+
     } else {
-      // TODO: Diese Nachricht muss zurück an den Client
-      // Was passiert wenn der Client die Daten falsch eingegeben hat
       console.log(username, " cannot logged in!");
     }
+    socket.emit("login_success", login_bool);
   });
 
 
@@ -130,6 +133,7 @@ io.on('connection', (socket) => {
   socket.on('register', (account_data) => {
     let user_exists = false;
     const users = read_users();
+    let register_bool = false;
 
     // Checkt ob der User in users.json enthalten ist
     user_exists = users.some(user => user.username === account_data.username);
@@ -144,6 +148,23 @@ io.on('connection', (socket) => {
       // zB. "Account wurde erfolgreich angelegt"
       console.log("Registration successful!");
     }
+
+    if (!user_exists) {
+      console.log("Registration successful!");
+      // TODO: Diese Nachricht muss zurück an den Client
+      // Was passiert wenn der Name schon vergeben ist?
+
+
+      register_users(users, account_data);
+      console.log("User aleready exists!");
+    } else {
+
+      console.log("User aleready exists!");
+    }
+
+    socket.emit("register_success", register_bool);
+
+
   });
 
 
