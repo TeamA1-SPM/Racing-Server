@@ -139,26 +139,18 @@ io.on('connection', (socket) => {
     user_exists = users.some(user => user.username === account_data.username);
 
     if (user_exists) {
-      // TODO: Diese Nachricht muss zurück an den Client
-      // Was passiert wenn der Name schon vergeben ist?
       console.log("User aleready exists!");
     } else {
       register_users(users, account_data);
-      // TODO: Hier Nachricht an den User, sockit emit...
-      // zB. "Account wurde erfolgreich angelegt"
       console.log("Registration successful!");
     }
 
     if (!user_exists) {
       console.log("Registration successful!");
-      // TODO: Diese Nachricht muss zurück an den Client
-      // Was passiert wenn der Name schon vergeben ist?
-
-
+      register_bool = true;
       register_users(users, account_data);
-      console.log("User aleready exists!");
-    } else {
 
+    } else {
       console.log("User aleready exists!");
     }
 
