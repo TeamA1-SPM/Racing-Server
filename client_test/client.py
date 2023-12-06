@@ -19,7 +19,7 @@ def disconnect():
     print('Verbindung getrennt')
 
 # Starte den Client und versuche, eine Verbindung zum Server herzustellen
-sio.connect('http://racing-server-test.onrender.com')
+sio.connect('https://racing-server-test.onrender.com')
 
 # Warte auf Benutzereingabe, um die Verbindung zu trennen
 input('Drücke Enter, um die Verbindung zu trennen...\n')

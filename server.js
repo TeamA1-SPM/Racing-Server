@@ -13,7 +13,7 @@ const users_file_path = path.join(__dirname, 'data', 'users.json');
 const lobbys_file_path = path.join(__dirname, 'data', 'lobbys.json');
 
 /* Server erzeugen und socketIO Server zuweisen */
-const PORT = 443;
+const PORT = process.env.PORT || 3000;
 const server = http.createServer();
 const io = socketIO(server);
 
