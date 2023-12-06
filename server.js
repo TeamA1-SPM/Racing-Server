@@ -6,7 +6,6 @@ const fs = require('fs');
 const path = require('path');
 const { Server } = require("socket.io");
 const express = require("express");
-const { Socket } = require('dgram');
 const cors = require("cors");
 
 const app = express();
@@ -17,7 +16,7 @@ console.log(port);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origins: `https://racing-server.onrender.com`,
+    origins: `https://racing-server-test.onrender.com`,
     methods: ["GET", "POST"],
   },
   pingInterval: 2000,
