@@ -138,13 +138,6 @@ io.on('connection', (socket) => {
     // Checkt ob der User in users.json enthalten ist
     user_exists = users.some(user => user.username === account_data.username);
 
-    if (user_exists) {
-      console.log("User aleready exists!");
-    } else {
-      register_users(users, account_data);
-      console.log("Registration successful!");
-    }
-
     if (!user_exists) {
       console.log("Registration successful!");
       register_bool = true;
@@ -155,7 +148,6 @@ io.on('connection', (socket) => {
     }
 
     socket.emit("register_success", register_bool);
-
 
   });
 
