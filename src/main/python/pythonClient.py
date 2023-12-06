@@ -33,7 +33,7 @@ def best_lap_times(me, you):
     print("Your lap: ", me)
     print("Enemy play: ", you)
 
-sio.connect('http://localhost:3000')
+sio.connect('https://racing-server.onrender.com')
 
 
 while True:

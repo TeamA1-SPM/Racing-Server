@@ -4,8 +4,25 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const socketIO = require('socket.io');
+const { Server } = require("socket.io");
+const express = require("express");
 const { Socket } = require('dgram');
+const cors = require("cors");
+
+const app = express();
+const port = process.env.PORT || 3001;
+app.use(cors());
+
+console.log(port);
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origins: `https://racing-server.onrender.com`,
+    methods: ["GET", "POST"],
+  },
+  pingInterval: 2000,
+  pingTimeout: 10000,
+});
 
 /* Erstelle einen absoluten Pfad zur users.json-Datei */
 const users_file_path = path.join(__dirname, 'data', 'users.json');
@@ -13,23 +30,11 @@ const users_file_path = path.join(__dirname, 'data', 'users.json');
 /* Erstelle einen absoluten Pfad zur lobbys.json-Datei */
 const lobbys_file_path = path.join(__dirname, 'data', 'lobbys.json');
 
-/* Server erzeugen und socketIO Server zuweisen */
-const PORT = 3000;
-const server = http.createServer();
-const io = socketIO(server);
-
 /* Speichert die verbundenen Sockets */
 const connected_sockets = {};
 
 /* Speichert die aktiven Lobbys */
 const active_lobbys = new Map();
-
-
-/* Server hört auf eingehende Events auf festgelegtem Port */
-server.listen(PORT, () => {
-  // Hier müssen alle bereits angelegten Spieler geladen werden, damit später überprüft werden kann ob ein login funktioniert oder nicht
-  console.log(`Server listening on port ${PORT}`);
-});
 
 
 /* Bei Verbindung eines Clients mit dem Server wird ein Socket für den Client angelegt */
