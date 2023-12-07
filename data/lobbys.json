@@ -1,0 +1,43 @@
+{
+    "lobbys": [
+      {
+        "lobbyID": 1,
+        "player1": {
+          "username": "tobi",
+          "fastestLap": null,
+          "won": false
+        },
+        "player2": {
+          "username": "tobi",
+          "fastestLap": null,
+          "won": true
+        }
+      },
+      {
+        "lobbyID": 2,
+        "player1": {
+          "username": "lewin",
+          "fastestLap": 100,
+          "won": false
+        },
+        "player2": {
+          "username": "tobi",
+          "fastestLap": null,
+          "won": true
+        }
+      },
+      {
+        "lobbyID": 3,
+        "player1": {
+          "username": "lewin",
+          "fastestLap": 100,
+          "won": false
+        },
+        "player2": {
+          "username": "timo",
+          "fastestLap": null,
+          "won": true
+        }
+      }
+    ]
+  }

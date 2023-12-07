@@ -14,7 +14,7 @@ const users_file_path = path.join(__dirname, 'data', 'users.json');
 const lobbys_file_path = path.join(__dirname, 'data', 'lobbys.json');
 
 /* Server erzeugen und socketIO Server zuweisen */
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const server = http.createServer();
 const io = socketIO(server);
 
@@ -301,7 +301,3 @@ function get_last_lobby_id() {
   let lobbys = read_lobbys();
   return lobbys[lobbys.length - 1].lobbyID;
 }
-
-
-
-
