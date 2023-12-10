@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const socketIO = require('socket.io');
 const { Socket } = require('dgram');
+const roadCreator = require('./roadCreator');
 
 /* Erstelle einen absoluten Pfad zur users.json-Datei */
 const users_file_path = path.join(__dirname, 'data', 'users.json');
@@ -23,6 +24,8 @@ const connected_sockets = {};
 
 /* Speichert die aktiven Lobbys */
 const active_lobbys = new Map();
+
+//roadCreator.createRoad();
 
 
 /* Server hört auf eingehende Events auf festgelegtem Port */
