@@ -63,7 +63,8 @@ io.on('connection', (socket) => {
           players.player2 = {
             "socketID": socket.id,
             "fastestLap": null,
-            "finished": false
+            "finished": false,
+            "rendered": false
           }
 
           connected_sockets[socket.id].lobbyID = lobbyID;
@@ -74,6 +75,8 @@ io.on('connection', (socket) => {
           io.to(players.player2.socketID).emit('start_game', connected_sockets[players.player1.socketID].username);
 
           found_lobby = true;
+          //jetzt kann eine Strecke ausgewählt werden
+          choose_track();
         }
       }
 
@@ -87,7 +90,8 @@ io.on('connection', (socket) => {
             player1: {
               "socketID": socket.id,
               "fastestLap": null,
-              "finished": false
+              "finished": false,
+              "rendered": false
             },
             player2: null
           }
@@ -179,7 +183,7 @@ io.on('connection', (socket) => {
 
   /* Wird aufgerufen, wenn Client sein race abgeschlossen hat */
   socket.on('finished_race', () => {
-    current_lobby = connected_sockets[socket.id].lobbyID;
+    //current_lobby = connected_sockets[socket.id].lobbyID;
 
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
@@ -200,6 +204,42 @@ io.on('connection', (socket) => {
       }
     }
 
+  });
+
+  /* Wird aufgerufen wenn ein client die Grafische Darstellung des Spiels erfolgreich geladen hat */
+  socket.on('game_rendered', () =>{
+    let current_lobby_ID = connected_sockets[socket.id].lobbyID;
+    let current_lobby = active_lobbys.get(current_lobby_ID);
+
+    //prüfen ob das spiel geladen wurde
+    if (socket.id == current_lobby.player1.socketID) {
+      current_lobby.player1.rendered = true;
+      if (current_lobby.player2.rendered == true) {
+        start_countdown;
+      }
+    }
+
+    if (socket.id == current_lobby.player2.socketID) {
+      current_lobby.player2.rendered = true;
+      if (current_lobby.player1.rendered == true) {
+        start_countdown;
+      }
+    }
+
+  });
+
+  /* Übergibt die Position des Spielers an den Gegner */
+  socket.on ('display_player', (one, two, three, four)=>{
+    let current_lobby_ID = connected_sockets[socket.id].lobbyID;
+    let current_lobby = active_lobbys.get(current_lobby_ID);
+
+    if (socket.id == current_lobby.player1.socketID) {
+      io.to(current_lobby.player2.socketID).emit('epp', one, two, three, four);
+    }
+
+    if (socket.id == current_lobby.player2.socketID) {
+      io.to(current_lobby.player1.socketID).emit('epp', one, two, three, four);
+    }
   });
 
 });
@@ -303,5 +343,25 @@ function get_last_lobby_id() {
 }
 
 
+/* Countdown Funktion die allen Sockets einer Lobby eine Start signal schickt */
+async function start_countdown() {
+  let current_lobby_ID = connected_sockets[socket.id].lobbyID;
+  let current_lobby = active_lobbys.get(current_lobby_ID);
+
+  for (let index = 3; index > 0; index--) {
+    io.to(current_lobby.player1.socketID).emit('countdown', index);
+    io.to(current_lobby.player2.socketID).emit('countdown', index);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+  }
+}
+
+/* Funktion generiert eine Zufällige Zahl zwischen 1 und 10 um sich für eine der 10 Strecken zu entscheiden */
+function choose_track() {
+  //Zufällige ganze Zahl zwischen 1 und 10
+  let track = Math.floor((Math.random() * 10) + 1);
+
+  io.to(current_lobby.player1.socketID).emit('raceTrack', track);
+  io.to(current_lobby.player2.socketID).emit('raceTrack', track);
+}
 
 
