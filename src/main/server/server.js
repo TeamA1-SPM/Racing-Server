@@ -25,7 +25,7 @@ const connected_sockets = {};
 /* Speichert die aktiven Lobbys */
 const active_lobbys = new Map();
 
-//roadCreator.createRoad();
+roadCreator.createRoad();
 
 
 /* Server hört auf eingehende Events auf festgelegtem Port */

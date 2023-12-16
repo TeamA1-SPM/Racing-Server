@@ -23,6 +23,7 @@ const road_file_path = path.join(__dirname, 'data', 'road.json');
 
 let roadData;
 let newRoad;
+let tempSeg;
 
 
 var ROAD = {
@@ -32,7 +33,7 @@ var ROAD = {
 };
 
 function findSegment(z) { return segments[Math.floor(z / segmentLength) % segments.length]; }
-function lastY() { return (segments.length === 0) ? 0 : segments[segments.length - 1].p2.world.y; }
+function lastY() { return (segments.length == 0) ? 0 : segments[segments.length - 1].p2.world.y; }
 
 // Utility functions
 function toInt(obj, def) { if (obj !== null) { var x = parseInt(obj, 10); if (!isNaN(x)) return x; } return toInt(def, 0); }
@@ -67,7 +68,27 @@ function createSegments() {
     resetSprites();
     resetCars();
 
-    writeNewRoad();
+    //newRoad = readRoad();
+
+    for (let index = 0; index < segments.length; index++) {
+        let seg = segments[index];
+        roadData = {
+            "index": seg.index,
+            "p1": [
+                seg.p1.world.y, seg.p1.world.z
+            ],
+            "p2": [
+                seg.p2.world.y, seg.p2.world.z
+            ],
+            "curve": seg.curve,
+            "sprite": seg.sprites,
+            "cars": seg.cars
+        };
+
+        writeRoad(roadData);
+    }
+
+    //writeNewRoad();
 
     segments[findSegment(playerZ).index + 2].color = COLORS.START;
     segments[findSegment(playerZ).index + 3].color = COLORS.START;
@@ -76,37 +97,41 @@ function createSegments() {
 
     trackLength = segments.length * segmentLength;
 
-    console.log(newRoad);
+    //console.log(newRoad);
 
     return segments;
 }
 
 function addSegment(curve, y) {
     var n = segments.length;
+
+    let tempY = lastY();
+    //console.log(tempY);
+
     segments.push({
         index: n,
-        p1: { world: { y: lastY(), z: n * segmentLength }, camera: {}, screen: {} },
+        p1: { world: { y: tempY, z: n * segmentLength }, camera: {}, screen: {} },
         p2: { world: { y: y, z: (n + 1) * segmentLength }, camera: {}, screen: {} },
         curve: curve,
         sprites: [],
         cars: [],
         color: Math.floor(n / rumbleLength) % 2 ? COLORS.DARK : COLORS.LIGHT
     });
+    /*
+        roadData = {
+            "index": n,
+            "p1": [
+                tempY, n * segmentLength
+            ],
+            "p2": [
+                y, (n + 1) * segmentLength
+            ],
+            "curve": curve,
+            "sprite": [],
+            "cars": []
+        }*/
 
-    roadData = {
-        "index": n,
-        "p1": [
-            lastY(), n * segmentLength
-        ],
-        "p2": [
-            y, (n + 1) * segmentLength
-        ],
-        "curve": curve,
-        "sprite": [],
-        "cars": []
-    }
-
-    writeRoad(roadData);
+    // writeRoad(roadData);
 }
 
 function addRoad(enter, hold, leave, curve, y) {
@@ -177,7 +202,7 @@ function addDownhillToEnd(num) {
 function addSprite(n, sprite, offset) {
     segments[n].sprites.push({ source: sprite, offset: offset });
 
-    newRoad = readRoad();
+    // newRoad = readRoad();
 
     /*
         newRoad.forEach((element) => {
@@ -187,9 +212,11 @@ function addSprite(n, sprite, offset) {
             }
         });*/
 
+    /*
     newRoad.map(i => {
         i.sprite = [sprite, offset];
     });
+    */
 
     // console.log(newRoad);
 
@@ -253,17 +280,17 @@ function resetCars() {
         segment = findSegment(car.z);
         segment.cars.push(car);
         cars.push(car);
-
-        let allCarsInSegment = segment.cars;
-
-        console.log(segment);
-        console.log(segment.cars);
-
-        newRoad.map(i => {
-            if (i.index == segment.index) {
-                i.cars = allCarsInSegment;
-            }
-        });
+        /*
+                let allCarsInSegment = segment.cars;
+        
+                console.log(segment);
+                console.log(segment.cars);
+        
+                newRoad.map(i => {
+                    if (i.index == segment.index) {
+                        i.cars = allCarsInSegment;
+                    }
+                });*/
 
     };
 
@@ -281,7 +308,7 @@ var COLORS = {
     FINISH: { road: 'black', grass: 'black', rumble: 'black' }
 };
 
-
+/*
 var SPRITES = {
     PALM_TREE: { x: 5, y: 5, w: 215, h: 540 },
     BILLBOARD08: { x: 230, y: 5, w: 385, h: 265 },
@@ -317,8 +344,44 @@ var SPRITES = {
     PLAYER_LEFT: { x: 995, y: 480, w: 80, h: 41 },
     PLAYER_STRAIGHT: { x: 1085, y: 480, w: 80, h: 41 },
     PLAYER_RIGHT: { x: 995, y: 531, w: 80, h: 41 }
-};
+};*/
 
+var SPRITES = {
+    PALM_TREE: "PALM_TREE",
+    BILLBOARD08: "BILLBOARD08",
+    TREE1: "TREE1",
+    DEAD_TREE1: "DEAD_TREE1",
+    BILLBOARD09: "BILLBOARD09",
+    BOULDER3: "BOULDER3",
+    COLUMN: "COLUMN",
+    BILLBOARD01: "BILLBOARD01",
+    BILLBOARD06: "BILLBOARD06",
+    BILLBOARD05: "BILLBOARD05",
+    BILLBOARD07: "BILLBOARD07",
+    BOULDER2: "BOULDER2",
+    TREE2: "TREE2",
+    BILLBOARD04: "BILLBOARD04",
+    DEAD_TREE2: "DEAD_TREE2",
+    BOULDER1: "BOULDER1",
+    BUSH1: "BUSH1",
+    CACTUS: "CACTUS",
+    BUSH2: "BUSH2",
+    BILLBOARD03: "BILLBOARD03",
+    BILLBOARD02: "BILLBOARD02",
+    STUMP: "STUMP",
+    SEMI: "SEMI",
+    TRUCK: "TRUCK",
+    CAR03: "CAR03",
+    CAR02: "CAR02",
+    CAR04: "CAR04",
+    CAR01: "CAR01",
+    PLAYER_UPHILL_LEFT: "PLAYER_UPHILL_LEFT",
+    PLAYER_UPHILL_STRAIGHT: "PLAYER_UPHILL_STRAIGHT",
+    PLAYER_UPHILL_RIGHT: "PLAYER_UPHILL_RIGHT",
+    PLAYER_LEFT: "PLAYER_LEFT",
+    PLAYER_STRAIGHT: "PLAYER_STRAIGHT",
+    PLAYER_RIGHT: "PLAYER_RIGHT",
+};
 
 SPRITES.BILLBOARDS = [SPRITES.BILLBOARD01, SPRITES.BILLBOARD02, SPRITES.BILLBOARD03, SPRITES.BILLBOARD04, SPRITES.BILLBOARD05, SPRITES.BILLBOARD06, SPRITES.BILLBOARD07, SPRITES.BILLBOARD08, SPRITES.BILLBOARD09];
 SPRITES.PLANTS = [SPRITES.TREE1, SPRITES.TREE2, SPRITES.DEAD_TREE1, SPRITES.DEAD_TREE2, SPRITES.PALM_TREE, SPRITES.BUSH1, SPRITES.BUSH2, SPRITES.CACTUS, SPRITES.STUMP, SPRITES.BOULDER1, SPRITES.BOULDER2, SPRITES.BOULDER3];
