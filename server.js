@@ -76,7 +76,7 @@ io.on('connection', (socket) => {
 
           found_lobby = true;
           //jetzt kann eine Strecke ausgewählt werden
-          choose_track();
+          choose_track(connected_sockets[socket.id].lobbyID);
         }
       }
 
@@ -215,14 +215,14 @@ io.on('connection', (socket) => {
     if (socket.id == current_lobby.player1.socketID) {
       current_lobby.player1.rendered = true;
       if (current_lobby.player2.rendered == true) {
-        start_countdown;
+        start_countdown(current_lobby);
       }
     }
 
     if (socket.id == current_lobby.player2.socketID) {
       current_lobby.player2.rendered = true;
       if (current_lobby.player1.rendered == true) {
-        start_countdown;
+        start_countdown(current_lobby);
       }
     }
 
@@ -344,9 +344,7 @@ function get_last_lobby_id() {
 
 
 /* Countdown Funktion die allen Sockets einer Lobby eine Start signal schickt */
-async function start_countdown() {
-  let current_lobby_ID = connected_sockets[socket.id].lobbyID;
-  let current_lobby = active_lobbys.get(current_lobby_ID);
+async function start_countdown(current_lobby) {
 
   for (let index = 3; index >= 0; index--) {
     io.to(current_lobby.player1.socketID).emit('countdown', index);
@@ -356,8 +354,7 @@ async function start_countdown() {
 }
 
 /* Funktion generiert eine Zufällige Zahl zwischen 1 und 10 um sich für eine der 10 Strecken zu entscheiden */
-function choose_track() {
-  let current_lobby_ID = connected_sockets[socket.id].lobbyID;
+function choose_track(current_lobby_ID) {
   let current_lobby = active_lobbys.get(current_lobby_ID);
 
   //Zufällige ganze Zahl zwischen 1 und 10
