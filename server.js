@@ -357,6 +357,9 @@ async function start_countdown() {
 
 /* Funktion generiert eine Zufällige Zahl zwischen 1 und 10 um sich für eine der 10 Strecken zu entscheiden */
 function choose_track() {
+  let current_lobby_ID = connected_sockets[socket.id].lobbyID;
+  let current_lobby = active_lobbys.get(current_lobby_ID);
+
   //Zufällige ganze Zahl zwischen 1 und 10
   let track = Math.floor((Math.random() * 10) + 1);
 
