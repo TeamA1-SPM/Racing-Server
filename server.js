@@ -14,7 +14,7 @@ const users_file_path = path.join(__dirname, 'data', 'users.json');
 const lobbys_file_path = path.join(__dirname, 'data', 'lobbys.json');
 
 /* Server erzeugen und socketIO Server zuweisen */
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const server = http.createServer();
 const io = socketIO(server);
 
@@ -207,7 +207,7 @@ io.on('connection', (socket) => {
   });
 
   /* Wird aufgerufen wenn ein client die Grafische Darstellung des Spiels erfolgreich geladen hat */
-  socket.on('game_rendered', () =>{
+  socket.on('game_rendered', () => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
 
@@ -229,7 +229,7 @@ io.on('connection', (socket) => {
   });
 
   /* Übergibt die Position des Spielers an den Gegner */
-  socket.on ('display_player', (one, two, three, four)=>{
+  socket.on('display_player', (one, two, three, four) => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
 
@@ -348,7 +348,7 @@ async function start_countdown() {
   let current_lobby_ID = connected_sockets[socket.id].lobbyID;
   let current_lobby = active_lobbys.get(current_lobby_ID);
 
-  for (let index = 3; index > 0; index--) {
+  for (let index = 3; index >= 0; index--) {
     io.to(current_lobby.player1.socketID).emit('countdown', index);
     io.to(current_lobby.player2.socketID).emit('countdown', index);
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -360,8 +360,8 @@ function choose_track() {
   //Zufällige ganze Zahl zwischen 1 und 10
   let track = Math.floor((Math.random() * 10) + 1);
 
-  io.to(current_lobby.player1.socketID).emit('raceTrack', track);
-  io.to(current_lobby.player2.socketID).emit('raceTrack', track);
+  io.to(current_lobby.player1.socketID).emit('race_Track', track);
+  io.to(current_lobby.player2.socketID).emit('race_Track', track);
 }
 
 
