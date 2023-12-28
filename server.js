@@ -14,7 +14,7 @@ const users_file_path = path.join(__dirname, 'data', 'users.json');
 const lobbys_file_path = path.join(__dirname, 'data', 'lobbys.json');
 
 /* Server erzeugen und socketIO Server zuweisen */
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const server = http.createServer();
 const io = socketIO(server);
 
@@ -45,7 +45,38 @@ io.on('connection', (socket) => {
 
   /* Wird aufgerufen, wenn Client Verbindung zum Server trennt */
   socket.on('disconnect', () => {
-    // TODO: Bei einem disconnect, soll auch ein Logout durchgeführt werden
+
+    // Wenn ein Spieler während einer laufenden Party disconnected, gewinnt automatisch der Gegenspieler.
+    try {
+      let current_lobby_ID = connected_sockets[socket.id].lobbyID;
+      let current_lobby = active_lobbys.get(current_lobby_ID);
+
+      if ((connected_sockets[socket.id].lobbyID != null) && (current_lobby.player2 != null)) {
+        if (socket.id == current_lobby.player1.socketID) {
+          game_ends(false, current_lobby.player1, current_lobby.player2, current_lobby_ID);
+        } else {
+          game_ends(true, current_lobby.player1, current_lobby.player2, current_lobby_ID);
+        }
+      }
+
+    } catch (error) {
+      console.log("DISCONNECT-INFO: No race found!")
+    }
+
+    // Wenn ein eingeloggter Spieler disconnected, wird der Socket und das User-Konto automatisch ausgeloggt. 
+    try {
+      if (connected_sockets[socket.id].loggedIn == true) {
+        // Socket logout
+        connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
+
+        // User-Konto logout
+        const users = read_users();
+        users.some(user => user.loggedIn = false);
+      }
+    } catch (error) {
+      console.log("DISCONNECT_INFO: Not logged in!")
+    }
+
     console.log('Client ', socket.id, ' disconnected!');
   });
 
@@ -69,14 +100,12 @@ io.on('connection', (socket) => {
 
           connected_sockets[socket.id].lobbyID = lobbyID;
 
-          // TODO: start_game muss von den Client abgefangen werden. Hier werden Daten (gerade nur gegnerischer Spielername) an den den jeweils anderen Client übergeben
-          // +- 0,5 auf x Koordinate
-          io.to(players.player1.socketID).emit('start_game', connected_sockets[players.player2.socketID].username);
-          io.to(players.player2.socketID).emit('start_game', connected_sockets[players.player1.socketID].username);
+          io.to(players.player1.socketID).emit('start_game', connected_sockets[players.player2.socketID].username, "player1");
+          io.to(players.player2.socketID).emit('start_game', connected_sockets[players.player1.socketID].username, "player2");
 
           found_lobby = true;
           //jetzt kann eine Strecke ausgewählt werden
-          choose_track();
+          choose_track(connected_sockets[socket.id].lobbyID);
         }
       }
 
@@ -107,21 +136,20 @@ io.on('connection', (socket) => {
   /* Wird aufgerufen, wenn Client sich einloggt */
   socket.on('login', (username, passwort) => {
     const users = read_users();
-    let correct_login_data = users.some(user => user.username === username && user.passwort === passwort);
+    let correct_login_data = users.some(user => user.username === username && user.passwort === passwort && user.loggedIn === false);
     let login_bool = false;
 
     if (correct_login_data) {
       connected_sockets[socket.id].username = username;
       connected_sockets[socket.id].loggedIn = true;
+
+      users.some(user => user.loggedIn = true);
+
       console.log(username, "logged in!")
       login_bool = true;
 
-      /* TODO: Die users.json um ("loggedIn": false) erweitern und nach erfolgreichem einloggen auf true setzen. 
-      Diese Bedinung dass loggedIn = false ist muss mit in die Einlogg-Bedingung aufgenommen werden, um zu verhindern,
-      dass sich der gleiche Account öfters einloggen kann */
-
     } else {
-      console.log(username, " cannot logged in!");
+      console.log(username, "cannot log in!");
     }
     socket.emit("login_success", login_bool);
   });
@@ -129,6 +157,8 @@ io.on('connection', (socket) => {
 
   /* Wird aufgerufen, wenn Client sich ausloggt */
   socket.on('logout', () => {
+    const users = read_users();
+    users.some(user => user.loggedIn = false);
     connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
   });
 
@@ -158,8 +188,6 @@ io.on('connection', (socket) => {
 
   /* Wird aufgerufen, wenn Client lap time sendet */
   socket.on('lap_time', (time) => {
-    // TODO: Fehlerbehandlung: Was passiert wenn ein Spieler mitten im Spiel die Verbindung unterbricht?
-    // TODO: Was ist wenn beide Bestzeiten gleich sind?
     console.log(connected_sockets[socket.id].username, "has driven a lap time of", time, "!");
 
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
@@ -183,7 +211,6 @@ io.on('connection', (socket) => {
 
   /* Wird aufgerufen, wenn Client sein race abgeschlossen hat */
   socket.on('finished_race', () => {
-    //current_lobby = connected_sockets[socket.id].lobbyID;
 
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
@@ -192,7 +219,7 @@ io.on('connection', (socket) => {
     if (socket.id == current_lobby.player1.socketID) {
       current_lobby.player1.finished = true;
       if (current_lobby.player2.finished == true) {
-        game_ends(current_lobby.player1.fastestLap < current_lobby.player2.fastestLap, current_lobby.player1, current_lobby.player2, lobbyID);
+        game_ends(current_lobby.player1.fastestLap < current_lobby.player2.fastestLap, current_lobby.player1, current_lobby.player2, current_lobby_ID);
       }
     }
 
@@ -200,14 +227,14 @@ io.on('connection', (socket) => {
     if (socket.id == current_lobby.player2.socketID) {
       current_lobby.player2.finished = true;
       if (current_lobby.player1.finished == true) {
-        game_ends(current_lobby.player1.fastestLap < current_lobby.player2.fastestLap, current_lobby.player1, current_lobby.player2, lobbyID);
+        game_ends(current_lobby.player1.fastestLap < current_lobby.player2.fastestLap, current_lobby.player1, current_lobby.player2, current_lobby_ID);
       }
     }
 
   });
 
   /* Wird aufgerufen wenn ein client die Grafische Darstellung des Spiels erfolgreich geladen hat */
-  socket.on('game_rendered', () =>{
+  socket.on('game_rendered', () => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
 
@@ -215,31 +242,38 @@ io.on('connection', (socket) => {
     if (socket.id == current_lobby.player1.socketID) {
       current_lobby.player1.rendered = true;
       if (current_lobby.player2.rendered == true) {
-        start_countdown;
+        start_countdown(current_lobby);
       }
     }
 
     if (socket.id == current_lobby.player2.socketID) {
       current_lobby.player2.rendered = true;
       if (current_lobby.player1.rendered == true) {
-        start_countdown;
+        start_countdown(current_lobby);
       }
     }
 
   });
 
   /* Übergibt die Position des Spielers an den Gegner */
-  socket.on ('display_player', (one, two, three, four)=>{
+  socket.on('display_player', (position, playerX, steer, gradient) => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
 
+
     if (socket.id == current_lobby.player1.socketID) {
-      io.to(current_lobby.player2.socketID).emit('epp', one, two, three, four);
+      io.to(current_lobby.player2.socketID).emit('epp', position, playerX, steer, gradient);
     }
 
     if (socket.id == current_lobby.player2.socketID) {
-      io.to(current_lobby.player1.socketID).emit('epp', one, two, three, four);
+      io.to(current_lobby.player1.socketID).emit('epp', position, playerX, steer, gradient);
     }
+  });
+
+  socket.on('leave_lobby', () => {
+    let current_lobby_ID = connected_sockets[socket.id].lobbyID;
+    active_lobbys.delete(current_lobby_ID);
+
   });
 
 });
@@ -328,6 +362,9 @@ function game_ends(player1_won, player1, player2, lobbyID) {
     }
   }
 
+  connected_sockets[player1.socketID].lobbyID = null;
+  connected_sockets[player2.socketID].lobbyID = null;
+
   // Lobby in lobbys.json sichern
   write_lobby(lobby_data);
   // Lobby wird gelöscht
@@ -344,11 +381,9 @@ function get_last_lobby_id() {
 
 
 /* Countdown Funktion die allen Sockets einer Lobby eine Start signal schickt */
-async function start_countdown() {
-  let current_lobby_ID = connected_sockets[socket.id].lobbyID;
-  let current_lobby = active_lobbys.get(current_lobby_ID);
+async function start_countdown(current_lobby) {
 
-  for (let index = 3; index > 0; index--) {
+  for (let index = 3; index >= 0; index--) {
     io.to(current_lobby.player1.socketID).emit('countdown', index);
     io.to(current_lobby.player2.socketID).emit('countdown', index);
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -356,12 +391,14 @@ async function start_countdown() {
 }
 
 /* Funktion generiert eine Zufällige Zahl zwischen 1 und 10 um sich für eine der 10 Strecken zu entscheiden */
-function choose_track() {
+function choose_track(current_lobby_ID) {
+  let current_lobby = active_lobbys.get(current_lobby_ID);
+
   //Zufällige ganze Zahl zwischen 1 und 10
   let track = Math.floor((Math.random() * 10) + 1);
 
-  io.to(current_lobby.player1.socketID).emit('raceTrack', track);
-  io.to(current_lobby.player2.socketID).emit('raceTrack', track);
+  io.to(current_lobby.player1.socketID).emit('race_Track', track);
+  io.to(current_lobby.player2.socketID).emit('race_Track', track);
 }
 
 
