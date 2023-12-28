@@ -69,10 +69,8 @@ io.on('connection', (socket) => {
 
           connected_sockets[socket.id].lobbyID = lobbyID;
 
-          // TODO: start_game muss von den Client abgefangen werden. Hier werden Daten (gerade nur gegnerischer Spielername) an den den jeweils anderen Client übergeben
-          // +- 0,5 auf x Koordinate
-          io.to(players.player1.socketID).emit('start_game', connected_sockets[players.player2.socketID].username);
-          io.to(players.player2.socketID).emit('start_game', connected_sockets[players.player1.socketID].username);
+          io.to(players.player1.socketID).emit('start_game', connected_sockets[players.player2.socketID].username, "player1");
+          io.to(players.player2.socketID).emit('start_game', connected_sockets[players.player1.socketID].username, "player2");
 
           found_lobby = true;
           //jetzt kann eine Strecke ausgewählt werden
@@ -183,7 +181,6 @@ io.on('connection', (socket) => {
 
   /* Wird aufgerufen, wenn Client sein race abgeschlossen hat */
   socket.on('finished_race', () => {
-    //current_lobby = connected_sockets[socket.id].lobbyID;
 
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
@@ -192,7 +189,7 @@ io.on('connection', (socket) => {
     if (socket.id == current_lobby.player1.socketID) {
       current_lobby.player1.finished = true;
       if (current_lobby.player2.finished == true) {
-        game_ends(current_lobby.player1.fastestLap < current_lobby.player2.fastestLap, current_lobby.player1, current_lobby.player2, lobbyID);
+        game_ends(current_lobby.player1.fastestLap < current_lobby.player2.fastestLap, current_lobby.player1, current_lobby.player2, current_lobby_ID);
       }
     }
 
@@ -200,7 +197,7 @@ io.on('connection', (socket) => {
     if (socket.id == current_lobby.player2.socketID) {
       current_lobby.player2.finished = true;
       if (current_lobby.player1.finished == true) {
-        game_ends(current_lobby.player1.fastestLap < current_lobby.player2.fastestLap, current_lobby.player1, current_lobby.player2, lobbyID);
+        game_ends(current_lobby.player1.fastestLap < current_lobby.player2.fastestLap, current_lobby.player1, current_lobby.player2, current_lobby_ID);
       }
     }
 
@@ -229,17 +226,24 @@ io.on('connection', (socket) => {
   });
 
   /* Übergibt die Position des Spielers an den Gegner */
-  socket.on('display_player', (one, two, three, four) => {
+  socket.on('display_player', (position, playerX, steer, gradient) => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
 
+
     if (socket.id == current_lobby.player1.socketID) {
-      io.to(current_lobby.player2.socketID).emit('epp', one, two, three, four);
+      io.to(current_lobby.player2.socketID).emit('epp', position, playerX, steer, gradient);
     }
 
     if (socket.id == current_lobby.player2.socketID) {
-      io.to(current_lobby.player1.socketID).emit('epp', one, two, three, four);
+      io.to(current_lobby.player1.socketID).emit('epp', position, playerX, steer, gradient);
     }
+  });
+
+  socket.on('leave_lobby', () => {
+    let current_lobby_ID = connected_sockets[socket.id].lobbyID;
+    active_lobbys.delete(current_lobby_ID);
+
   });
 
 });
