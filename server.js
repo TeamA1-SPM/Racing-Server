@@ -136,14 +136,14 @@ io.on('connection', (socket) => {
   /* Wird aufgerufen, wenn Client sich einloggt */
   socket.on('login', (username, passwort) => {
     const users = read_users();
-    let correct_login_data = users.some(user => user.username === username && user.passwort === passwort && user.loggedIn === false);
+    let correct_login_data = users.some(user => user.username === username && user.passwort === passwort && user.loggedIn === "false");
     let login_bool = false;
 
     if (correct_login_data) {
       connected_sockets[socket.id].username = username;
       connected_sockets[socket.id].loggedIn = true;
 
-      users.some(user => user.loggedIn = true);
+      users.some(user => user.loggedIn = "true");
 
       console.log(username, "logged in!")
       login_bool = true;
@@ -158,7 +158,7 @@ io.on('connection', (socket) => {
   /* Wird aufgerufen, wenn Client sich ausloggt */
   socket.on('logout', () => {
     const users = read_users();
-    users.some(user => user.loggedIn = false);
+    users.some(user => user.loggedIn = "false");
     connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
   });
 
