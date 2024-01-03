@@ -383,7 +383,7 @@ function get_last_lobby_id() {
 /* Countdown Funktion die allen Sockets einer Lobby eine Start signal schickt */
 async function start_countdown(current_lobby) {
 
-  for (let index = 3; index >= 0; index--) {
+  for (let index = 4; index >= 0; index--) {
     io.to(current_lobby.player1.socketID).emit('countdown', index);
     io.to(current_lobby.player2.socketID).emit('countdown', index);
     await new Promise(resolve => setTimeout(resolve, 1500));
