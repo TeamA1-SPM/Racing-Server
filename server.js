@@ -269,18 +269,13 @@ io.on('connection', (socket) => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
 
-    try {
-      if (socket.id == current_lobby.player1.socketID) {
-        io.to(current_lobby.player2.socketID).emit('epp', position, playerX, steer, gradient);
-      }
-
-      if (socket.id == current_lobby.player2.socketID) {
-        io.to(current_lobby.player1.socketID).emit('epp', position, playerX, steer, gradient);
-      }
-    } catch (error) {
-      console.log("No Player to display");
+    if (socket.id == current_lobby.player1.socketID) {
+      io.to(current_lobby.player2.socketID).emit('epp', position, playerX, steer, gradient);
     }
 
+    if (socket.id == current_lobby.player2.socketID) {
+      io.to(current_lobby.player1.socketID).emit('epp', position, playerX, steer, gradient);
+    }
 
   });
 
