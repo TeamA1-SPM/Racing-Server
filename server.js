@@ -45,7 +45,37 @@ io.on('connection', (socket) => {
 
   /* Wird aufgerufen, wenn Client Verbindung zum Server trennt */
   socket.on('disconnect', () => {
-    // TODO: Bei einem disconnect, soll auch ein Logout durchgeführt werden
+
+    // Wenn ein Spieler während einer laufenden Party disconnected, gewinnt automatisch der Gegenspieler.
+    try {
+      let current_lobby_ID = connected_sockets[socket.id].lobbyID;
+      let current_lobby = active_lobbys.get(current_lobby_ID);
+
+      if ((connected_sockets[socket.id].lobbyID != null) && (current_lobby.player2 != null)) {
+        if (socket.id == current_lobby.player1.socketID) {
+          game_ends(false, current_lobby.player1, current_lobby.player2, current_lobby_ID);
+        } else {
+          game_ends(true, current_lobby.player1, current_lobby.player2, current_lobby_ID);
+        }
+      }
+
+    } catch (error) {
+      console.log("DISCONNECT-INFO: No race found!")
+    }
+
+    if (connected_sockets[socket.id].loggedIn == true) {
+      // Socket logout
+      logout(socket);
+    }
+
+    /*
+    // Wenn ein eingeloggter Spieler disconnected, wird der Socket und das User-Konto automatisch ausgeloggt. 
+    try {
+      
+    } catch (error) {
+      console.log("DISCONNECT_INFO: Not logged in!")
+    }*/
+
     console.log('Client ', socket.id, ' disconnected!');
   });
 
@@ -91,7 +121,8 @@ io.on('connection', (socket) => {
               "finished": false,
               "rendered": false
             },
-            player2: null
+            player2: null,
+            track: -1
           }
         )
 
@@ -105,21 +136,24 @@ io.on('connection', (socket) => {
   /* Wird aufgerufen, wenn Client sich einloggt */
   socket.on('login', (username, passwort) => {
     const users = read_users();
-    let correct_login_data = users.some(user => user.username === username && user.passwort === passwort);
+    let correct_login_data = users.some(user => user.username === username && user.passwort === passwort && user.loggedIn === "false");
     let login_bool = false;
 
     if (correct_login_data) {
       connected_sockets[socket.id].username = username;
       connected_sockets[socket.id].loggedIn = true;
+
+      const loggedInUser = users.find(user => user.username === username && user.passwort === passwort && user.loggedIn === "false");
+      if (loggedInUser) {
+        loggedInUser.loggedIn = "true";
+        write_users(users);
+      }
+
       console.log(username, "logged in!")
       login_bool = true;
 
-      /* TODO: Die users.json um ("loggedIn": false) erweitern und nach erfolgreichem einloggen auf true setzen. 
-      Diese Bedinung dass loggedIn = false ist muss mit in die Einlogg-Bedingung aufgenommen werden, um zu verhindern,
-      dass sich der gleiche Account öfters einloggen kann */
-
     } else {
-      console.log(username, " cannot logged in!");
+      console.log(username, "cannot log in!");
     }
     socket.emit("login_success", login_bool);
   });
@@ -127,6 +161,13 @@ io.on('connection', (socket) => {
 
   /* Wird aufgerufen, wenn Client sich ausloggt */
   socket.on('logout', () => {
+    const users = read_users();
+    loggedInUser = users.find(user => user.username === connected_sockets[socket.id].username && user.loggedIn === "true");
+    if (loggedInUser) {
+      loggedInUser.loggedIn = "false";
+      write_users(users);
+    }
+    console.log(connected_sockets[socket.id].username, "logged out!")
     connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
   });
 
@@ -156,8 +197,6 @@ io.on('connection', (socket) => {
 
   /* Wird aufgerufen, wenn Client lap time sendet */
   socket.on('lap_time', (time) => {
-    // TODO: Fehlerbehandlung: Was passiert wenn ein Spieler mitten im Spiel die Verbindung unterbricht?
-    // TODO: Was ist wenn beide Bestzeiten gleich sind?
     console.log(connected_sockets[socket.id].username, "has driven a lap time of", time, "!");
 
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
@@ -230,19 +269,61 @@ io.on('connection', (socket) => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
 
+    try {
+      if (socket.id == current_lobby.player1.socketID) {
+        io.to(current_lobby.player2.socketID).emit('epp', position, playerX, steer, gradient);
+      }
 
-    if (socket.id == current_lobby.player1.socketID) {
-      io.to(current_lobby.player2.socketID).emit('epp', position, playerX, steer, gradient);
+      if (socket.id == current_lobby.player2.socketID) {
+        io.to(current_lobby.player1.socketID).emit('epp', position, playerX, steer, gradient);
+      }
+    } catch (error) {
+      console.log(error);
     }
 
-    if (socket.id == current_lobby.player2.socketID) {
-      io.to(current_lobby.player1.socketID).emit('epp', position, playerX, steer, gradient);
-    }
   });
 
   socket.on('leave_lobby', () => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     active_lobbys.delete(current_lobby_ID);
+
+  });
+
+  socket.on('best_track_times', (track) => {
+
+    let lobbys = read_lobbys();
+    let score_board_array = [];
+
+
+    for (let index = 0; index < lobbys.length; index++) {
+      let current_lobby = lobbys[index];
+      if (current_lobby.track == track) {
+
+        if (current_lobby.player1.fastestLap != null && current_lobby.player2.fastestLap != null) {
+
+          if (current_lobby.player1.fastestLap < current_lobby.player2.fastestLap) {
+            score_board_array.push([current_lobby.player1.username, current_lobby.player1.fastestLap]);
+          } else {
+            score_board_array.push([current_lobby.player2.username, current_lobby.player2.fastestLap]);
+          }
+        }
+
+        if (current_lobby.player1.fastestLap != null && current_lobby.player2.fastestLap == null) {
+          score_board_array.push([current_lobby.player1.username, current_lobby.player1.fastestLap]);
+        }
+
+        if (current_lobby.player1.fastestLap == null && current_lobby.player2.fastestLap != null) {
+          score_board_array.push([current_lobby.player2.username, current_lobby.player2.fastestLap]);
+        }
+
+      }
+
+    }
+
+    score_board_array = score_board_array.sort((a, b) => a[1] - b[1]);
+    score_board_array = score_board_array.slice(0, 9);
+
+    socket.emit('score_board', score_board_array);
 
   });
 
@@ -288,6 +369,10 @@ function register_users(users, account_data) {
   }
 }
 
+function write_users(users) {
+  fs.writeFileSync(users_file_path, JSON.stringify({ users }, null, 2), 'utf-8');
+}
+
 
 /* Funktion schreibt neue Lobby in lobbys.json */
 function write_lobby(lobby_data) {
@@ -310,15 +395,16 @@ function game_ends(player1_won, player1, player2, lobbyID) {
   if (player1_won) {
     // @Param Event_Name, Enemy Player Name, Fastest Lap, Enemy Fastest Lap, Won?
     io.to(player1.socketID).emit('end_game', connected_sockets[player2.socketID].username, player1.fastestLap, player2.fastestLap, true);
-    io.to(player2.socketID).emit('end_game', connected_sockets[player1.socketID].username, player2.fastestLap, player2.fastestLap, false);
+    io.to(player2.socketID).emit('end_game', connected_sockets[player1.socketID].username, player2.fastestLap, player1.fastestLap, false);
   } else {
     io.to(player1.socketID).emit('end_game', connected_sockets[player2.socketID].username, player1.fastestLap, player2.fastestLap, false);
-    io.to(player2.socketID).emit('end_game', connected_sockets[player1.socketID].username, player2.fastestLap, player2.fastestLap, true);
+    io.to(player2.socketID).emit('end_game', connected_sockets[player1.socketID].username, player2.fastestLap, player1.fastestLap, true);
   }
 
   // JSON-Data zum schreiben in lobbys.json
   let lobby_data = {
     "lobbyID": lobbyID,
+    "track": active_lobbys.get(lobbyID).track,
     "player1": {
       "username": connected_sockets[player1.socketID].username,
       "fastestLap": player1.fastestLap,
@@ -332,6 +418,10 @@ function game_ends(player1_won, player1, player2, lobbyID) {
     }
   }
 
+  connected_sockets[player1.socketID].lobbyID = null;
+  connected_sockets[player2.socketID].lobbyID = null;
+
+  //TODO: Wenn beide Bestzeiten "null" sind, nicht in die JSON schreiben
   // Lobby in lobbys.json sichern
   write_lobby(lobby_data);
   // Lobby wird gelöscht
@@ -350,7 +440,7 @@ function get_last_lobby_id() {
 /* Countdown Funktion die allen Sockets einer Lobby eine Start signal schickt */
 async function start_countdown(current_lobby) {
 
-  for (let index = 3; index >= 0; index--) {
+  for (let index = 4; index >= 0; index--) {
     io.to(current_lobby.player1.socketID).emit('countdown', index);
     io.to(current_lobby.player2.socketID).emit('countdown', index);
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -364,8 +454,22 @@ function choose_track(current_lobby_ID) {
   //Zufällige ganze Zahl zwischen 1 und 10
   let track = Math.floor((Math.random() * 10) + 1);
 
+  current_lobby.track = track;
+
   io.to(current_lobby.player1.socketID).emit('race_Track', track);
   io.to(current_lobby.player2.socketID).emit('race_Track', track);
 }
+
+function logout(socket) {
+  const users = read_users();
+  loggedInUser = users.find(user => user.username === connected_sockets[socket.id].username && user.loggedIn === "true");
+  if (loggedInUser) {
+    loggedInUser.loggedIn = "false";
+    write_users(users);
+  }
+  console.log(connected_sockets[socket.id].username, "logged out!")
+  connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
+}
+
 
 
