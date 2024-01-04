@@ -2,6 +2,7 @@
   "lobbys": [
     {
       "lobbyID": 1,
+      "track": 5,
       "player1": {
         "username": "tobi",
         "fastestLap": null,
@@ -15,6 +16,7 @@
     },
     {
       "lobbyID": 2,
+      "track": 5,
       "player1": {
         "username": "lewin",
         "fastestLap": 100,
@@ -28,9 +30,66 @@
     },
     {
       "lobbyID": 3,
+      "track": 5,
       "player1": {
         "username": "lewin",
-        "fastestLap": 100,
+        "fastestLap": null,
+        "won": false
+      },
+      "player2": {
+        "username": "timo",
+        "fastestLap": 85,
+        "won": true
+      }
+    },
+    {
+      "lobbyID": 4,
+      "track": 5,
+      "player1": {
+        "username": "timo",
+        "fastestLap": 12.4666,
+        "won": true
+      },
+      "player2": {
+        "username": "lewin",
+        "fastestLap": 19.75,
+        "won": false
+      }
+    },
+    {
+      "lobbyID": 5,
+      "track": 5,
+      "player1": {
+        "username": "lewin",
+        "fastestLap": null,
+        "won": true
+      },
+      "player2": {
+        "username": "timo",
+        "fastestLap": null,
+        "won": false
+      }
+    },
+    {
+      "lobbyID": 6,
+      "track": 5,
+      "player1": {
+        "username": "lewin",
+        "fastestLap": 38.1999,
+        "won": false
+      },
+      "player2": {
+        "username": "timo",
+        "fastestLap": 23.9499,
+        "won": true
+      }
+    },
+    {
+      "lobbyID": 7,
+      "track": 5,
+      "player1": {
+        "username": "lewin",
+        "fastestLap": null,
         "won": false
       },
       "player2": {
@@ -40,15 +99,44 @@
       }
     },
     {
-      "lobbyID": 4,
+      "lobbyID": 8,
+      "track": 5,
+      "player1": {
+        "username": "lewin",
+        "fastestLap": null,
+        "won": false
+      },
+      "player2": {
+        "username": "timo",
+        "fastestLap": null,
+        "won": true
+      }
+    },
+    {
+      "lobbyID": 9,
+      "track": 10,
       "player1": {
         "username": "timo",
-        "fastestLap": 12.4666,
-        "won": true
+        "fastestLap": null,
+        "won": false
       },
       "player2": {
         "username": "lewin",
-        "fastestLap": 19.75,
+        "fastestLap": null,
+        "won": true
+      }
+    },
+    {
+      "lobbyID": 10,
+      "track": 6,
+      "player1": {
+        "username": "lewin",
+        "fastestLap": 23.7999,
+        "won": true
+      },
+      "player2": {
+        "username": "timo",
+        "fastestLap": 36.5333,
         "won": false
       }
     }

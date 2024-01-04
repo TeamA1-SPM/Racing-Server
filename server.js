@@ -121,7 +121,8 @@ io.on('connection', (socket) => {
               "finished": false,
               "rendered": false
             },
-            player2: null
+            player2: null,
+            track: -1
           }
         )
 
@@ -142,7 +143,6 @@ io.on('connection', (socket) => {
       connected_sockets[socket.id].username = username;
       connected_sockets[socket.id].loggedIn = true;
 
-      //TODO: WORKS?
       const loggedInUser = users.find(user => user.username === username && user.passwort === passwort && user.loggedIn === "false");
       if (loggedInUser) {
         loggedInUser.loggedIn = "true";
@@ -269,19 +269,62 @@ io.on('connection', (socket) => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     let current_lobby = active_lobbys.get(current_lobby_ID);
 
+    try {
+      if (socket.id == current_lobby.player1.socketID) {
+        io.to(current_lobby.player2.socketID).emit('epp', position, playerX, steer, gradient);
+      }
 
-    if (socket.id == current_lobby.player1.socketID) {
-      io.to(current_lobby.player2.socketID).emit('epp', position, playerX, steer, gradient);
+      if (socket.id == current_lobby.player2.socketID) {
+        io.to(current_lobby.player1.socketID).emit('epp', position, playerX, steer, gradient);
+      }
+    } catch (error) {
+      console.log("No Player to display");
     }
 
-    if (socket.id == current_lobby.player2.socketID) {
-      io.to(current_lobby.player1.socketID).emit('epp', position, playerX, steer, gradient);
-    }
+
   });
 
   socket.on('leave_lobby', () => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
     active_lobbys.delete(current_lobby_ID);
+
+  });
+
+  socket.on('best_track_times', (track) => {
+
+    let lobbys = read_lobbys();
+    let score_board_array = [];
+
+
+    for (let index = 0; index < lobbys.length; index++) {
+      let current_lobby = lobbys[index];
+      if (current_lobby.track == track) {
+
+        if (current_lobby.player1.fastestLap != null && current_lobby.player2.fastestLap != null) {
+
+          if (current_lobby.player1.fastestLap < current_lobby.player2.fastestLap) {
+            score_board_array.push([current_lobby.player1.username, current_lobby.player1.fastestLap]);
+          } else {
+            score_board_array.push([current_lobby.player2.username, current_lobby.player2.fastestLap]);
+          }
+        }
+
+        if (current_lobby.player1.fastestLap != null && current_lobby.player2.fastestLap == null) {
+          score_board_array.push([current_lobby.player1.username, current_lobby.player1.fastestLap]);
+        }
+
+        if (current_lobby.player1.fastestLap == null && current_lobby.player2.fastestLap != null) {
+          score_board_array.push([current_lobby.player2.username, current_lobby.player2.fastestLap]);
+        }
+
+      }
+
+    }
+
+    score_board_array = score_board_array.sort((a, b) => a[1] - b[1]);
+    score_board_array = score_board_array.slice(0, 9);
+
+    socket.emit('score_board', score_board_array);
 
   });
 
@@ -362,6 +405,7 @@ function game_ends(player1_won, player1, player2, lobbyID) {
   // JSON-Data zum schreiben in lobbys.json
   let lobby_data = {
     "lobbyID": lobbyID,
+    "track": active_lobbys.get(lobbyID).track,
     "player1": {
       "username": connected_sockets[player1.socketID].username,
       "fastestLap": player1.fastestLap,
@@ -378,6 +422,7 @@ function game_ends(player1_won, player1, player2, lobbyID) {
   connected_sockets[player1.socketID].lobbyID = null;
   connected_sockets[player2.socketID].lobbyID = null;
 
+  //TODO: Wenn beide Bestzeiten "null" sind, nicht in die JSON schreiben
   // Lobby in lobbys.json sichern
   write_lobby(lobby_data);
   // Lobby wird gelöscht
@@ -410,6 +455,8 @@ function choose_track(current_lobby_ID) {
   //Zufällige ganze Zahl zwischen 1 und 10
   let track = Math.floor((Math.random() * 10) + 1);
 
+  current_lobby.track = track;
+
   io.to(current_lobby.player1.socketID).emit('race_Track', track);
   io.to(current_lobby.player2.socketID).emit('race_Track', track);
 }
@@ -424,4 +471,6 @@ function logout(socket) {
   console.log(connected_sockets[socket.id].username, "logged out!")
   connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
 }
+
+
 
