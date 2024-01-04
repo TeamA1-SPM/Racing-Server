@@ -111,7 +111,7 @@ io.on('connection', (socket) => {
       // Prüfen, ob keine Lobby gefunden wurde
       if (!found_lobby) {
         // Neue Lobby erstellen
-        let new_lobbyID = get_last_lobby_id() + 1;
+        let new_lobbyID = generateUniqueLobbyID();
         active_lobbys.set(
           new_lobbyID,
           {
@@ -467,5 +467,10 @@ function logout(socket) {
   connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
 }
 
+function generateUniqueLobbyID() {
+  const timestamp = new Date().getTime();
+  const randomSuffix = Math.floor(Math.random() * 1000); // Zusätzlicher Zufallsanteil für den Fall, dass mehrere Anfragen in derselben Millisekunde erfolgen
+  return `${timestamp}_${randomSuffix}`;
+}
 
 
