@@ -1,43 +1,56 @@
 {
-    "lobbys": [
-      {
-        "lobbyID": 1,
-        "player1": {
-          "username": "tobi",
-          "fastestLap": null,
-          "won": false
-        },
-        "player2": {
-          "username": "tobi",
-          "fastestLap": null,
-          "won": true
-        }
+  "lobbys": [
+    {
+      "lobbyID": 1,
+      "player1": {
+        "username": "tobi",
+        "fastestLap": null,
+        "won": false
       },
-      {
-        "lobbyID": 2,
-        "player1": {
-          "username": "lewin",
-          "fastestLap": 100,
-          "won": false
-        },
-        "player2": {
-          "username": "tobi",
-          "fastestLap": null,
-          "won": true
-        }
-      },
-      {
-        "lobbyID": 3,
-        "player1": {
-          "username": "lewin",
-          "fastestLap": 100,
-          "won": false
-        },
-        "player2": {
-          "username": "timo",
-          "fastestLap": null,
-          "won": true
-        }
+      "player2": {
+        "username": "tobi",
+        "fastestLap": null,
+        "won": true
       }
-    ]
-  }
+    },
+    {
+      "lobbyID": 2,
+      "player1": {
+        "username": "lewin",
+        "fastestLap": 100,
+        "won": false
+      },
+      "player2": {
+        "username": "tobi",
+        "fastestLap": null,
+        "won": true
+      }
+    },
+    {
+      "lobbyID": 3,
+      "player1": {
+        "username": "lewin",
+        "fastestLap": 100,
+        "won": false
+      },
+      "player2": {
+        "username": "timo",
+        "fastestLap": null,
+        "won": true
+      }
+    },
+    {
+      "lobbyID": 4,
+      "player1": {
+        "username": "timo",
+        "fastestLap": 12.4666,
+        "won": true
+      },
+      "player2": {
+        "username": "lewin",
+        "fastestLap": 19.75,
+        "won": false
+      }
+    }
+  ]
+}

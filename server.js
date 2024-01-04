@@ -63,19 +63,18 @@ io.on('connection', (socket) => {
       console.log("DISCONNECT-INFO: No race found!")
     }
 
+    if (connected_sockets[socket.id].loggedIn == true) {
+      // Socket logout
+      logout(socket);
+    }
+
+    /*
     // Wenn ein eingeloggter Spieler disconnected, wird der Socket und das User-Konto automatisch ausgeloggt. 
     try {
-      if (connected_sockets[socket.id].loggedIn == true) {
-        // Socket logout
-        connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
-
-        // User-Konto logout
-        const users = read_users();
-        users.some(user => user.loggedIn = false);
-      }
+      
     } catch (error) {
       console.log("DISCONNECT_INFO: Not logged in!")
-    }
+    }*/
 
     console.log('Client ', socket.id, ' disconnected!');
   });
@@ -143,7 +142,12 @@ io.on('connection', (socket) => {
       connected_sockets[socket.id].username = username;
       connected_sockets[socket.id].loggedIn = true;
 
-      users.some(user => user.loggedIn = "true");
+      //TODO: WORKS?
+      const loggedInUser = users.find(user => user.username === username && user.passwort === passwort && user.loggedIn === "false");
+      if (loggedInUser) {
+        loggedInUser.loggedIn = "true";
+        write_users(users);
+      }
 
       console.log(username, "logged in!")
       login_bool = true;
@@ -158,7 +162,12 @@ io.on('connection', (socket) => {
   /* Wird aufgerufen, wenn Client sich ausloggt */
   socket.on('logout', () => {
     const users = read_users();
-    users.some(user => user.loggedIn = "false");
+    loggedInUser = users.find(user => user.username === connected_sockets[socket.id].username && user.loggedIn === "true");
+    if (loggedInUser) {
+      loggedInUser.loggedIn = "false";
+      write_users(users);
+    }
+    console.log(connected_sockets[socket.id].username, "logged out!")
     connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
   });
 
@@ -318,6 +327,10 @@ function register_users(users, account_data) {
   }
 }
 
+function write_users(users) {
+  fs.writeFileSync(users_file_path, JSON.stringify({ users }, null, 2), 'utf-8');
+}
+
 
 /* Funktion schreibt neue Lobby in lobbys.json */
 function write_lobby(lobby_data) {
@@ -340,10 +353,10 @@ function game_ends(player1_won, player1, player2, lobbyID) {
   if (player1_won) {
     // @Param Event_Name, Enemy Player Name, Fastest Lap, Enemy Fastest Lap, Won?
     io.to(player1.socketID).emit('end_game', connected_sockets[player2.socketID].username, player1.fastestLap, player2.fastestLap, true);
-    io.to(player2.socketID).emit('end_game', connected_sockets[player1.socketID].username, player2.fastestLap, player2.fastestLap, false);
+    io.to(player2.socketID).emit('end_game', connected_sockets[player1.socketID].username, player2.fastestLap, player1.fastestLap, false);
   } else {
     io.to(player1.socketID).emit('end_game', connected_sockets[player2.socketID].username, player1.fastestLap, player2.fastestLap, false);
-    io.to(player2.socketID).emit('end_game', connected_sockets[player1.socketID].username, player2.fastestLap, player2.fastestLap, true);
+    io.to(player2.socketID).emit('end_game', connected_sockets[player1.socketID].username, player2.fastestLap, player1.fastestLap, true);
   }
 
   // JSON-Data zum schreiben in lobbys.json
@@ -401,4 +414,14 @@ function choose_track(current_lobby_ID) {
   io.to(current_lobby.player2.socketID).emit('race_Track', track);
 }
 
+function logout(socket) {
+  const users = read_users();
+  loggedInUser = users.find(user => user.username === connected_sockets[socket.id].username && user.loggedIn === "true");
+  if (loggedInUser) {
+    loggedInUser.loggedIn = "false";
+    write_users(users);
+  }
+  console.log(connected_sockets[socket.id].username, "logged out!")
+  connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
+}
 

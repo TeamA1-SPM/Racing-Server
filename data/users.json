@@ -29,6 +29,11 @@
       "username": "tobi",
       "passwort": "123456",
       "loggedIn": "false"
+    },
+    {
+      "passwort": "123456",
+      "loggedIn": "false",
+      "username": "testoE"
     }
   ]
 }
