@@ -287,16 +287,20 @@ io.on('connection', (socket) => {
       if (current_lobby.track == track) {
 
         if (current_lobby.player1.fastestLap != null && current_lobby.player2.fastestLap != null) {
-          score_board_array.push([current_lobby.player1.username, current_lobby.player1.fastestLap]);
-          score_board_array.push([current_lobby.player2.username, current_lobby.player2.fastestLap]);
+          score_board_array.push(current_lobby.player1.username);
+          score_board_array.push(current_lobby.player1.fastestLap);
+          score_board_array.push(current_lobby.player2.username);
+          score_board_array.push(current_lobby.player2.fastestLap);
         }
 
         if (current_lobby.player1.fastestLap != null && current_lobby.player2.fastestLap == null) {
-          score_board_array.push([current_lobby.player1.username, current_lobby.player1.fastestLap]);
+          score_board_array.push(current_lobby.player1.username);
+          score_board_array.push(current_lobby.player1.fastestLap);
         }
 
         if (current_lobby.player1.fastestLap == null && current_lobby.player2.fastestLap != null) {
-          score_board_array.push([current_lobby.player2.username, current_lobby.player2.fastestLap]);
+          score_board_array.push(current_lobby.player2.username);
+          score_board_array.push(current_lobby.player2.fastestLap);
         }
 
       }
@@ -304,7 +308,7 @@ io.on('connection', (socket) => {
     }
 
     score_board_array = score_board_array.sort((a, b) => a[1] - b[1]);
-    score_board_array = score_board_array.slice(0, 10);
+    score_board_array = score_board_array.slice(0, 20);
 
     socket.emit('score_board', score_board_array);
 
