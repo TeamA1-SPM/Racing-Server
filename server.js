@@ -25,23 +25,21 @@ const connected_sockets = {};
 const active_lobbys = new Map();
 
 
+//----------------------------------------- SOCKET-FUNKTIONEN -----------------------------------------//
+
+
 /* Server hört auf eingehende Events auf festgelegtem Port */
 server.listen(PORT, () => {
-  // Hier müssen alle bereits angelegten Spieler geladen werden, damit später überprüft werden kann ob ein login funktioniert oder nicht
   console.log(`Server listening on port ${PORT}`);
+  test(1);
 });
-
 
 /* Bei Verbindung eines Clients mit dem Server wird ein Socket für den Client angelegt */
 io.on('connection', (socket) => {
-  console.log('Client', socket.id, 'connected!');
 
-  // Neuen Client speichern
+  /* Neuen Client speichern und */
   connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
-
-  // Client über erfolgreiche Verbindung informieren
-  socket.emit("message", "Connected to Sever!");
-
+  console.log('Client', socket.id, 'connected!');
 
   /* Wird aufgerufen, wenn Client Verbindung zum Server trennt */
   socket.on('disconnect', () => {
@@ -60,21 +58,13 @@ io.on('connection', (socket) => {
       }
 
     } catch (error) {
-      console.log("DISCONNECT-INFO: No race found!")
+      console.log("DISCONNECT-INFO: No race found!");
+      console.log(error);
     }
 
     if (connected_sockets[socket.id].loggedIn == true) {
-      // Socket logout
       logout(socket);
     }
-
-    /*
-    // Wenn ein eingeloggter Spieler disconnected, wird der Socket und das User-Konto automatisch ausgeloggt. 
-    try {
-      
-    } catch (error) {
-      console.log("DISCONNECT_INFO: Not logged in!")
-    }*/
 
     console.log('Client ', socket.id, ' disconnected!');
   });
@@ -281,6 +271,7 @@ io.on('connection', (socket) => {
 
   socket.on('leave_lobby', () => {
     let current_lobby_ID = connected_sockets[socket.id].lobbyID;
+    connected_sockets[socket.id].lobbyID = null;
     active_lobbys.delete(current_lobby_ID);
 
   });
@@ -296,12 +287,8 @@ io.on('connection', (socket) => {
       if (current_lobby.track == track) {
 
         if (current_lobby.player1.fastestLap != null && current_lobby.player2.fastestLap != null) {
-
-          if (current_lobby.player1.fastestLap < current_lobby.player2.fastestLap) {
-            score_board_array.push([current_lobby.player1.username, current_lobby.player1.fastestLap]);
-          } else {
-            score_board_array.push([current_lobby.player2.username, current_lobby.player2.fastestLap]);
-          }
+          score_board_array.push([current_lobby.player1.username, current_lobby.player1.fastestLap]);
+          score_board_array.push([current_lobby.player2.username, current_lobby.player2.fastestLap]);
         }
 
         if (current_lobby.player1.fastestLap != null && current_lobby.player2.fastestLap == null) {
@@ -317,13 +304,16 @@ io.on('connection', (socket) => {
     }
 
     score_board_array = score_board_array.sort((a, b) => a[1] - b[1]);
-    score_board_array = score_board_array.slice(0, 9);
+    score_board_array = score_board_array.slice(0, 10);
 
     socket.emit('score_board', score_board_array);
 
   });
 
 });
+
+
+//----------------------------------------- INTERNE SERVER- und HILFSFUNKTIONEN -----------------------------------------//
 
 
 /* Funktion ließt alle historischen lobbys aus lobbys.json */
@@ -417,8 +407,6 @@ function game_ends(player1_won, player1, player2, lobbyID) {
   connected_sockets[player1.socketID].lobbyID = null;
   connected_sockets[player2.socketID].lobbyID = null;
 
-  //TODO: Wenn beide Bestzeiten "null" sind, nicht in die JSON schreiben
-  // Lobby in lobbys.json sichern
   write_lobby(lobby_data);
   // Lobby wird gelöscht
   active_lobbys.delete(lobbyID);
@@ -448,21 +436,23 @@ function choose_track(current_lobby_ID) {
   io.to(current_lobby.player2.socketID).emit('race_Track', track);
 }
 
+/* Hilfsfunktion für einen vollständigen Logout */
 function logout(socket) {
   const users = read_users();
   loggedInUser = users.find(user => user.username === connected_sockets[socket.id].username && user.loggedIn === "true");
+
   if (loggedInUser) {
     loggedInUser.loggedIn = "false";
     write_users(users);
   }
+
   console.log(connected_sockets[socket.id].username, "logged out!")
   connected_sockets[socket.id] = { "username": null, "loggedIn": false, "lobbyID": null };
 }
 
 function generateUniqueLobbyID() {
   const timestamp = new Date().getTime();
-  const randomSuffix = Math.floor(Math.random() * 1000); // Zusätzlicher Zufallsanteil für den Fall, dass mehrere Anfragen in derselben Millisekunde erfolgen
+  // Zusätzlicher Zufallsanteil für den Fall, dass mehrere Anfragen in derselben Millisekunde erfolgen
+  const randomSuffix = Math.floor(Math.random() * 1000);
   return `${timestamp}_${randomSuffix}`;
 }
-
-
