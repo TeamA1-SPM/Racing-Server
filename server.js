@@ -425,14 +425,6 @@ function game_ends(player1_won, player1, player2, lobbyID) {
 
 }
 
-
-/* Funktion beendet das Spiel einer Lobby */
-function get_last_lobby_id() {
-  let lobbys = read_lobbys();
-  return lobbys[lobbys.length - 1].lobbyID;
-}
-
-
 /* Countdown Funktion die allen Sockets einer Lobby eine Start signal schickt */
 async function start_countdown(current_lobby) {
 
