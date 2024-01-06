@@ -31,7 +31,6 @@ const active_lobbys = new Map();
 /* Server hört auf eingehende Events auf festgelegtem Port */
 server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
-  test(1);
 });
 
 /* Bei Verbindung eines Clients mit dem Server wird ein Socket für den Client angelegt */
@@ -460,36 +459,4 @@ function generateUniqueLobbyID() {
   // Zusätzlicher Zufallsanteil für den Fall, dass mehrere Anfragen in derselben Millisekunde erfolgen
   const randomSuffix = Math.floor(Math.random() * 1000);
   return `${timestamp}_${randomSuffix}`;
-}
-
-function test(track) {
-  let lobbys = read_lobbys();
-  let score_board_array = [];
-
-
-  for (let index = 0; index < lobbys.length; index++) {
-    let current_lobby = lobbys[index];
-    if (current_lobby.track == track) {
-
-      if (current_lobby.player1.fastestLap != null && current_lobby.player2.fastestLap != null) {
-        score_board_array.push([current_lobby.player1.username, current_lobby.player1.fastestLap]);
-        score_board_array.push([current_lobby.player2.username, current_lobby.player2.fastestLap]);
-      }
-
-      if (current_lobby.player1.fastestLap != null && current_lobby.player2.fastestLap == null) {
-        score_board_array.push([current_lobby.player1.username, current_lobby.player1.fastestLap]);
-      }
-
-      if (current_lobby.player1.fastestLap == null && current_lobby.player2.fastestLap != null) {
-        score_board_array.push([current_lobby.player2.username, current_lobby.player2.fastestLap]);
-      }
-
-    }
-
-  }
-
-  score_board_array = score_board_array.sort((a, b) => a[1] - b[1]);
-  score_board_array = score_board_array.slice(0, 10);
-
-  console.log(score_board_array);
 }
