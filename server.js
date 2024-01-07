@@ -111,7 +111,7 @@ io.on('connection', (socket) => {
               "rendered": false
             },
             player2: null,
-            track: -1
+            track: 1
           }
         )
 
@@ -280,9 +280,6 @@ io.on('connection', (socket) => {
     let lobbys = read_lobbys();
     let score_board_array = [];
 
-    console.log("Yes Sir");
-
-
     for (let index = 0; index < lobbys.length; index++) {
       let current_lobby = lobbys[index];
       if (current_lobby.track == track) {
@@ -310,8 +307,6 @@ io.on('connection', (socket) => {
     score_board_array = score_board_array.reduce((flatArray, currentArray) => flatArray.concat(currentArray), []);
 
     socket.emit('score_board', score_board_array);
-    console.log(score_board_array);
-
   });
 
 });
@@ -432,7 +427,8 @@ function choose_track(current_lobby_ID) {
   let current_lobby = active_lobbys.get(current_lobby_ID);
 
   //Zufällige ganze Zahl zwischen 1 und 10
-  let track = Math.floor((Math.random() * 10) + 1);
+  //let track = Math.floor((Math.random() * 10) + 1);
+  let track = 1;
 
   current_lobby.track = track;
 
