@@ -1,3 +1,76 @@
-Racing-Server deployment
+CI/CD Racing-Server deployment
+https://racing-server.onrender.com/
 
-https://racing-server.onrender.com
+
+Dieses Dokument enthält die wichtigsten Informationen über die server- und clientseitigen Funktionen. Standardfunktionen sind nicht aufgeführt.
+Im folgenden Format werden die Informationen dargestellt:
+
+>> *Funktionsname*, (Übergabeparameter)
+Logikbeschreibung
+
+//-------------------------------------------------//
+
+Serverseitig:
+Als serverseitige Funktionen, sind jene Funktionen, die serverseitig Implementiert worden sind und durch einen Client angesprochen werden können.
+
+>> *register*, (account_data)
+Die übergebene Variable account_data wird im Format data = { "username" : xyz, "password" : abc} übergeben. Wenn der User noch nicht in der user.json zu finden ist, wird der Account registiert und eben genannter json hinzugefügt. 
+
+>> *login*, (username, passwort)
+Die übergebenen Variablen werden mit Werten der bereits angelegten Users abgeglichen. Wenn die Werte übereinstimmen wird der Client eingeloggt, sodass weitere Funktionen genutzt werden können.
+
+>> *find_lobby*, ()
+Der Client startet die Suche nach einer Spiel-Lobby. Dazu wird in den bereits bestehenden Lobbys nach einem freien Platz gesucht. Wird ein freier Platz gefunden, wird der Client einem Lobby Dictonary hinzugefügt, sodass dieser Spieler in der Lobby eindeutig identifiziert werden kann. Falls kein freier Platz gefunden wurde, wird eine neue Lobby erstellt und gewartet bis ein Gegenspieler gefunden wurde. 
+
+>> *lap_time*, (time)
+Bei jedem Abschluss einer Runde, wird die gefahrene Zeit eines Spielers an den Server gesendet. Die Zeit wird an den Gegenspieler weitergeleitet.
+
+>> *finished_race*, ()
+Sobald ein Spieler das Spiel beendet hat, soll diese Funktion aufgerufen werden. Es wird vorgemerkt, welcher Spieler das Spiel bereits beendet hat.
+Wenn beide Spieler das Ende erreichen, werden alle Daten rund um das Rennen auf dem Server gespeichert. Die Lobby des Spiels wird gelöscht.
+
+>> *game_rendered*, ()
+Sobald ein Spieler eine Lobby gefunden hat, wird die Strecke gerendered. Nach dem Ladeprozess wird die Funktion aufgerufen und für den Client gespeichert.
+ 
+>> *display_player*, (one, two, three, four)
+Immer wenn diese Funktion aufgerufen wird, werden die 4 Variablen und ihre Werte an den Gegenspieler gesendet.
+
+>> *leave_lobby*, ()
+Die Lobby wird nach dem Aufruf im Warte-Screen verlassen.
+
+>> *best_track_times*, (track)  
+Die JSON mit allen Lobbys wird nach der übergebenen Track-Nummer gefiltert und nach den besten Fahrzeiten sortiert. Alles wird in einem Zweidimensionalen Array gespeichert. 
+
+
+//-------------------------------------------------//
+
+Clientseitig:
+Als clientseitige Funktionen, sind jene Funktionen, die clientseitig Implementiert worden sind und durch den Server angesprochen werden können.
+
+
+>> *register_success*, (register_bool)
+Die übergebene Variabel register_bool ist ein boolean, der den Wert true an den Client übergibt, insofern der Registirierungsvorgang erfolgreich abgeschlossen werden konnte. Andernfalls wird ein false zurückgegeben.  
+
+>> *login_success*, (login_bool)
+Die übergebene Variabel login_bool ist ein boolean, der den Wert true an den Client übergibt, insofern der Loginvorgang erfolgreich abgeschlossen werden konnte. Andernfalls wird ein false zurückgegeben.
+
+>> *start_game*, (connected_sockets[players.player2.socketID].username, "player1" oder "player2")
+Nachdem 2 Clients eine Lobby betreten haben, wird an die *start_game* Funktion der Spielername des Gegners gesendet. Ebenso wird eine Info als String übergeben, welcher Spieler ("player1" oder "player2") man ist, um die Startposition richtig auswählen zu können.
+
+>> *best_lap_times*, (my_time, enemy_time)
+Die Funktion werden die aktuellen Bestzeiten der Spieler übermittelt. Dazu wird immer erst die eigene und danach die Zeit des Gegenspielers gesendet.
+
+>> *end_game*, (enemy_name, my_best_lap, enemy_best_lap, won_bool)
+Der Funktion werden alle Daten übermittelt die zur Darstellung des Endgame-Screens notwendig sind. Dazu gehört der Name des Gegenspielers, die eigene Bestzeit, die Bestzeit des Gegner und ein boolean, welcher anzeigt ob das Spiel gewonnen (true) oder verloren wurde (false).
+
+>> *countdown*, (index)
+Nachdem beide Spieler das Spiel geladen haben sendet die Funktion in einem Abstand von 1,5 Sekunden die Zahlen 4 - 3 - 2 - 1 - 0. Diese können dazu genutzt werden, die richtigen Sprites anzeigen zu lassen. Auf der 0 soll das Spiel beginnen.
+
+>> *race_Track*, (track) <<--- wird nicht benutzt, Clientseitig wird immer track01 ausgewählt. Für kommende Features (unterschiedliche Strecken) nutzbar
+Die Funktion empfängt eine zufällige Zahl zwischen 1 und 10. Basierend auf der übergebenen Zahl, soll eine der 10 Strecken geladen werden.
+
+>> *epp*, (position, playerX, steer, gradient)  
+Die Funktion empfängt die 4 Koordinaten des Gegenspielers, um ihn im eigenen Spiel darzustellen.
+
+>> *score_board*, (score_board_array)  
+Die Funktion empfängt ein zweidimensionales Array, in dem der Username und die Rundenzeit gespeichert sind. Das Array ist sortiert und kann für die Darstellung in einer Bestenliste genutzt werden.
